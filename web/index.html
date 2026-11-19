@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Galaxy Defender</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@600;800&family=Red+Hat+Mono:wght@400;600&family=Red+Hat+Text:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="marca">
+      <h1>Event Galaxy Defender</h1>
+      <p>eventos caem, automações respondem</p>
+      <span id="aoVivo" class="selo" hidden>ao vivo</span>
+      <span id="fontes" class="fontes"></span>
+    </div>
+
+    <dl class="placar">
+      <div><dt>Eventos</dt><dd id="nEventos">0</dd></div>
+      <div class="eda"><dt>EDA</dt><dd><span id="nEda">0</span><small id="tEda">–</small></dd></div>
+      <div class="aap so-vivo"><dt>Controller</dt><dd><span id="nAap">0</span><small id="tAap">–</small></dd></div>
+      <div class="ao"><dt>Orchestrator</dt><dd><span id="nAo">0</span><small id="tAo">–</small></dd></div>
+      <div class="manual so-simulacao"><dt>Ações manuais</dt><dd id="nAcoes">0</dd></div>
+      <div class="impacto"><dt id="dtNaoAuto">Não automatizados</dt><dd><span id="nNaoAuto">0</span><small id="nImpactos">0 impactos</small></dd></div>
+      <div><dt id="dtAuto">Automático</dt><dd id="pAuto">–</dd></div>
+      <div class="saude">
+        <dt>Saúde do ambiente</dt>
+        <dd><span class="trilho"><span id="saudeBarra"></span></span><span id="saudeValor">100</span></dd>
+      </div>
+    </dl>
+  </header>
+
+  <main>
+    <section class="palco">
+      <canvas id="ceu" aria-label="Céu com eventos caindo e automações respondendo"></canvas>
+
+      <ul class="legenda" aria-label="Legenda">
+        <li class="alerta">alerta</li>
+        <li class="incidente">incidente</li>
+        <li class="demanda">demanda</li>
+        <li class="sep eda">EDA</li>
+        <li class="aap so-vivo">Controller</li>
+        <li class="ao">Orchestrator</li>
+        <li class="manual so-simulacao">plantão</li>
+      </ul>
+
+      <button id="aprovar" class="aprovar" hidden></button>
+      <p id="pausado" class="pausado" hidden>pausado</p>
+    </section>
+
+    <aside class="registro">
+      <h2>Onde ganhamos, onde perdemos</h2>
+      <ul id="cobertura"></ul>
+      <h2>Registro</h2>
+      <ol id="log"></ol>
+    </aside>
+  </main>
+
+  <footer class="controles">
+    <div class="grupo so-simulacao">
+      <span class="titulo">Lançar</span>
+      <div id="lancadores" class="botoes"></div>
+    </div>
+    <div class="grupo so-simulacao">
+      <span class="titulo">Defesa</span>
+      <div class="botoes">
+        <button id="btEda" class="chave eda" aria-pressed="true"><kbd>E</kbd>EDA</button>
+        <button id="btAo" class="chave ao" aria-pressed="true"><kbd>O</kbd>Orchestrator</button>
+        <button id="btAprov" class="chave aprov" aria-pressed="false"><kbd>M</kbd>Aprovação manual</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <span class="titulo">Cena</span>
+      <div class="botoes">
+        <button id="btModo" class="chave vivo" aria-pressed="false" title="Alterna entre o que está rodando de verdade e a simulação"><kbd>V</kbd>Ao vivo</button>
+        <button id="btChuva" class="chave so-simulacao" aria-pressed="true"><kbd>A</kbd>Chuva</button>
+        <label class="intensidade so-simulacao">intensidade
+          <input id="intensidade" type="range" min="1" max="5" step="1" value="2">
+        </label>
+        <button id="btPausa" class="chave" aria-pressed="false"><kbd>␣</kbd>Pausar</button>
+        <button id="btZerar"><kbd>R</kbd>Zerar</button>
+      </div>
+    </div>
+    <p class="dica so-simulacao">Clique num meteoro sem automação para agir como plantão. Enter aprova.</p>
+    <p class="dica so-vivo">Somente leitura: cada meteoro é um job do AAP ou uma execução do Orchestrator.</p>
+  </footer>
+
+  <script src="catalogo.js"></script>
+  <script src="jogo.js"></script>
+</body>
+</html>

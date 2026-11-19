@@ -1,0 +1,79 @@
+# Event Galaxy Defender no OpenShift. Uso: deploy/openshift/deploy.sh
+# A imagem é construída no próprio cluster (build binário) ou enviada pelo podman (BUILD=podman).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: event-galaxy-defender
+---
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: event-galaxy-defender
+  namespace: event-galaxy-defender
+spec:
+  lookupPolicy: {local: true}
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: event-galaxy-defender
+  namespace: event-galaxy-defender
+spec:
+  source: {type: Binary}
+  strategy:
+    type: Docker
+    dockerStrategy: {dockerfilePath: Containerfile}
+  output:
+    to: {kind: ImageStreamTag, name: "event-galaxy-defender:latest"}
+  successfulBuildsHistoryLimit: 2
+  failedBuildsHistoryLimit: 2
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-galaxy-defender
+  namespace: event-galaxy-defender
+  labels: {app: event-galaxy-defender}
+  annotations:
+    # novo build => novo rollout
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"event-galaxy-defender:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"app\")].image"}]'
+spec:
+  # Uma réplica só: as telas abertas (SSE) e o estado do coletor ficam na memória do processo.
+  replicas: 1
+  selector: {matchLabels: {app: event-galaxy-defender}}
+  template:
+    metadata: {labels: {app: event-galaxy-defender}}
+    spec:
+      securityContext: {runAsNonRoot: true, seccompProfile: {type: RuntimeDefault}}
+      containers:
+        - name: app
+          image: event-galaxy-defender:latest
+          # Credenciais de leitura do AAP e do Orchestrator. O Secret é opcional: sem ele o jogo
+          # sobe em simulação. Criar com deploy/openshift/credenciais.sh.
+          envFrom:
+            - secretRef: {name: event-galaxy-defender-credenciais, optional: true}
+          ports: [{containerPort: 8080, name: http}]
+          readinessProbe: {httpGet: {path: /, port: http}, periodSeconds: 10}
+          livenessProbe: {httpGet: {path: /, port: http}, initialDelaySeconds: 10, periodSeconds: 20}
+          resources: {requests: {cpu: 10m, memory: 48Mi}, limits: {memory: 192Mi}}
+          securityContext: {allowPrivilegeEscalation: false, readOnlyRootFilesystem: true, capabilities: {drop: [ALL]}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-galaxy-defender
+  namespace: event-galaxy-defender
+spec:
+  selector: {app: event-galaxy-defender}
+  ports: [{name: http, port: 8080, targetPort: http}]
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: event-galaxy-defender
+  namespace: event-galaxy-defender
+spec:
+  to: {kind: Service, name: event-galaxy-defender}
+  port: {targetPort: http}
+  # Allow: também responde em http://, que abre sem o aviso do certificado autoassinado do CRC
+  tls: {termination: edge, insecureEdgeTerminationPolicy: Allow}
